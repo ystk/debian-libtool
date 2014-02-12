@@ -22,6 +22,7 @@ endif
 DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 ifeq ($(DEB_BUILD_GNU_TYPE), $(DEB_HOST_GNU_TYPE))
 	confflags += --build=$(DEB_HOST_GNU_TYPE)
 	make_check = yes
@@ -39,17 +40,7 @@ endif
 #	make_check = no
 #endif
 
-patch: patch-stamp
-patch-stamp:
-	QUILT_PATCHES=debian/patches quilt push -a || test $$? = 2
-	touch patch-stamp
-
-unpatch:
-	QUILT_PATCHES=debian/patches quilt pop -a || test $$? = 2
-	rm -rf patch-stamp debian/patched
-
-clean: clean-patched unpatch
-clean-patched:
+clean: 
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp config-stamp
@@ -77,7 +68,7 @@ clean-patched:
 
 config: config-stamp
 Makefile: config-stamp
-config-stamp: patch-stamp
+config-stamp:
 	dh_testdir
 
 #	These go into the libtool-doc `examples' directory.
@@ -90,7 +81,7 @@ config-stamp: patch-stamp
 	sed -i -e 's/^#.*progname.*@VERSION@$$/& Debian-$(DEBIAN_REVISION)/' libltdl/config/ltmain.m4sh
 	sed -i -e 's/^VERSION.*/VERSION="@VERSION@ Debian-$(DEBIAN_REVISION)"/' libltdl/config/ltmain.m4sh
 	./bootstrap
-	CONFIG_SHELL=/bin/bash /bin/bash ./configure --prefix=/usr $(confflags) CFLAGS="$(CFLAGS)"
+	CONFIG_SHELL=/bin/bash /bin/bash ./configure --prefix=/usr --libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) $(confflags) CFLAGS="$(CFLAGS)"
 	touch config-stamp
 
 
@@ -145,6 +136,7 @@ build-stamp: config-stamp
 ifeq ($(make_check), yes)
 #	Now make sure it works
 	-$(MAKE) check || touch tests-failed
+	-cat test-suite.log
 	-cat tests/testsuite.log
 	@test ! -f tests-failed
 endif
@@ -196,7 +188,6 @@ binary-arch: build install
 	dh_installdocs -plibltdl7
 	mkdir -p debian/libltdl-dev/usr/share/doc
 	cd debian/libltdl-dev/usr/share/doc && ln -sf libltdl7 libltdl-dev
-	dh_installman -plibtool debian/libtool.1 debian/libtoolize.1
 	dh_installchangelogs -plibtool ChangeLog
 	dh_installchangelogs -plibltdl7 ChangeLog
 	dh_strip -a

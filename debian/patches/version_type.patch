@@ -1,8 +1,8 @@
-Index: libtool-2.2.6a/libltdl/config/ltmain.m4sh
+Index: libtool-2.4/libltdl/config/ltmain.m4sh
 ===================================================================
---- libtool-2.2.6a.orig/libltdl/config/ltmain.m4sh	2008-11-18 21:12:39.000000000 +0000
-+++ libtool-2.2.6a/libltdl/config/ltmain.m4sh	2008-11-18 21:12:41.000000000 +0000
-@@ -5767,6 +5767,9 @@
+--- libtool-2.4.orig/libltdl/config/ltmain.m4sh	2011-08-24 16:13:30.000000000 +0200
++++ libtool-2.4/libltdl/config/ltmain.m4sh	2011-08-24 16:28:49.000000000 +0200
+@@ -6548,6 +6548,9 @@
  	    revision="$number_minor"
  	    lt_irix_increment=no
  	    ;;

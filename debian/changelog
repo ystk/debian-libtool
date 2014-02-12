@@ -1,3 +1,70 @@
+libtool (2.4.2-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Apply upstream fix for hurd-i386 linker flags (Closes: #648514).
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 12 Jun 2012 00:05:43 +0200
+
+libtool (2.4.2-1) unstable; urgency=low
+
+  * New upstream release
+    Remove patches applied upstream:
+    - define_shlibpath_overrides_runpath4hurd.patch
+    - tagdemo-libfoo.patch
+  * Remove disable_cmdline_wrap4hurd.patch as it never really was
+    needed in the first place.  The other tests failing made the
+    cmdline_wrap test fail.
+  * Add multiarch support.  Patch from
+    Steve Langasek <steve.langasek@canonical.com>  (Closes: #646771)
+
+ -- Kurt Roeckx <kurt@roeckx.be>  Sat, 29 Oct 2011 20:08:48 +0200
+
+libtool (2.4-4) unstable; urgency=low
+
+  * dpkg-dev decided to also reverse apply the arm change, so remove
+    the revert (Closes: #632614)
+
+ -- Kurt Roeckx <kurt@roeckx.be>  Wed, 24 Aug 2011 14:10:54 +0000
+
+libtool (2.4-3) unstable; urgency=low
+
+  * Also cat test-suite.log (Closes: #632613)
+  * Also disable broken tests with non-PIC code on arm. (Closes: #632614)
+
+ -- Kurt Roeckx <kurt@roeckx.be>  Fri, 29 Jul 2011 15:45:31 +0200
+
+libtool (2.4-2) unstable; urgency=low
+
+  * Add support for hurd (Closes: #612204)
+    Patches from Svante Signell <srs@kth.se> and
+    Pino Toscano <toscano.pino@tiscali.it>
+
+ -- Kurt Roeckx <kurt@roeckx.be>  Thu, 07 Apr 2011 21:57:09 +0200
+
+libtool (2.4-1) unstable; urgency=low
+
+  * New upstream release
+    - Update build-depends to automake (>= 1:1.11.1), autoconf (>= 2.62)
+    - Update patches to apply to current version:
+      - link_all_deplibs.patch
+      - deplib_binary.patch
+  * convert to a 3.0 (quilt) source format, and drop quilt build-dependency.
+  * Make tagdemo link to libfoo (Closes: #619845)
+
+ -- Kurt Roeckx <kurt@roeckx.be>  Sat, 02 Apr 2011 19:07:56 +0000
+
+libtool (2.2.10-1) experimental; urgency=low
+
+  * New upstream release (Closes: #586246)
+    - Change license of documentation to GFDL 1.3
+    - Upstream now provides manpages for libtool and libtoolize, use
+      those instead of our own.
+    - drop lt_dlopenext.patch, bogus_directory.patch,
+      skip_setlocale.patch, kopensolaris.patch and
+      gold_symbol_versioning.patch applied upstream.
+
+ -- Kurt Roeckx <kurt@roeckx.be>  Thu, 17 Jun 2010 20:09:14 +0200
+
 libtool (2.2.6b-2) unstable; urgency=low
 
   * Add build depedency on zlib1g-dev needed by the search-path.at
@@ -61,7 +128,7 @@ libtool (2.2.6a-2) unstable; urgency=low
   * Do not add bogus directory arguments to link command lines.
     Patch from upstream. (Closes: #517501)
   * Fix bogus error on successful loading of library with lt_dlopenext.
-    Patch already applied upstream. (Closes: #517501)
+    Patch already applied upstream. (Closes: #510006)
   * Add support for the DEB_BUILD_OPTIONS nocheck option
   * Update to Standards-Version 3.8.1
 
