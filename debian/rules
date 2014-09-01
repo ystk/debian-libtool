@@ -7,13 +7,16 @@
 
 DEBIAN_REVISION=$(strip $(shell dpkg-parsechangelog | awk -F: '/^Version:/ {print $$NF}'))
 
-# libltdl needs to conform to policy
-CFLAGS = -Wall -g
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
+# if doing a binary-arch build, the Makefiles still want to update the
+# info files; force them not to
+ifneq (,$(wildcard /usr/bin/makeinfo))
+  MAKEINFO = makeinfo
 else
-	CFLAGS += -O2
+  export MAKEINFO=true
 endif
+
+# libltdl needs to conform to policy
+export DEB_CFLAGS_MAINT_PREPEND = -Wall
 ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 	INSTALL_PROGRAM += -s
 endif
@@ -43,7 +46,7 @@ endif
 clean: 
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp config-stamp
+	rm -f build-stamp build-indep-stamp config-stamp
 	dh_clean
 
 	[ ! -f Makefile ] || $(MAKE) -k distclean
@@ -81,11 +84,17 @@ config-stamp:
 	sed -i -e 's/^#.*progname.*@VERSION@$$/& Debian-$(DEBIAN_REVISION)/' libltdl/config/ltmain.m4sh
 	sed -i -e 's/^VERSION.*/VERSION="@VERSION@ Debian-$(DEBIAN_REVISION)"/' libltdl/config/ltmain.m4sh
 	./bootstrap
-	CONFIG_SHELL=/bin/bash /bin/bash ./configure --prefix=/usr --libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) $(confflags) CFLAGS="$(CFLAGS)"
+	CONFIG_SHELL=/bin/bash /bin/bash ./configure \
+		--prefix=/usr \
+		--libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) \
+		$(confflags) \
+		$(shell dpkg-buildflags --export=cmdline)
 	touch config-stamp
 
 
-build: build-stamp
+build: build-arch build-indep
+
+build-arch: build-stamp
 build-stamp: config-stamp
 	dh_testdir
 
@@ -128,11 +137,6 @@ build-stamp: config-stamp
 #	Make libtool executable again
 	chmod 755 libtool
 
-#	This generated HTML page goes into libtool-doc.
-	cd doc && makeinfo libtool.texi
-	cd doc && texi2html -monolithic libtool.texi
-
-
 ifeq ($(make_check), yes)
 #	Now make sure it works
 	-$(MAKE) check || touch tests-failed
@@ -143,26 +147,43 @@ endif
 
 	touch build-stamp
 
+build-indep: build-indep-stamp
+build-indep-stamp:
+#	This generated HTML page goes into libtool-doc.
+	cd doc && $(MAKEINFO) libtool.texi
+	cd doc && $(MAKEINFO) --html --no-split libtool.texi
+
+	touch build-indep-stamp
+
 install: build
 	dh_testdir
 	dh_testroot
 	dh_prep
 	dh_installdirs
 
-	$(MAKE) prefix=`pwd`/debian/tmp/usr install
+	$(MAKE) prefix=$(CURDIR)/debian/tmp/usr install
+	rm -f debian/tmp/usr/share/info/dir
+
+	dh_install $(if $(filter true,$(MAKEINFO)),-Nlibtool-doc) \
+		--fail-missing --sourcedir=debian/tmp
 
 # Build architecture-independent files here.
-binary-indep: build install
+binary-indep: build-indep install
 	dh_testdir -i
 	dh_testroot -i
 
-	dh_movefiles -i
+	# Create symlinks to the one in autotools-dev
+	rm -f debian/libtool/usr/share/libtool/config/config.guess
+	ln -s ../../misc/config.guess debian/libtool/usr/share/libtool/config
+	rm -f debian/libtool/usr/share/libtool/config/config.sub
+	ln -s ../../misc/config.sub debian/libtool/usr/share/libtool/config
 
 	dh_installdocs -i
 	dh_installinfo -plibtool-doc
 	dh_installexamples -i
 	dh_installchangelogs -i ChangeLog
 	dh_link -i
+	dh_lintian -i
 	dh_compress -i
 	dh_fixperms -i
 	dh_installdeb -i
@@ -171,26 +192,18 @@ binary-indep: build install
 	dh_builddeb -i
 
 # Build architecture-dependent files here.
-binary-arch: build install
+binary-arch: build-arch install
 	dh_testdir -a
 	dh_testroot -a
 
-	dh_movefiles -a -Nlibtool
-	dh_movefiles -plibtool
-
-	# Create symlinks to the one in autotools-dev
-	rm -f debian/libtool/usr/share/libtool/config/config.guess
-	ln -s ../../misc/config.guess debian/libtool/usr/share/libtool/config
-	rm -f debian/libtool/usr/share/libtool/config/config.sub
-	ln -s ../../misc/config.sub debian/libtool/usr/share/libtool/config
-
-	dh_installdocs -plibtool
+	dh_installdocs -plibtool-bin
 	dh_installdocs -plibltdl7
 	mkdir -p debian/libltdl-dev/usr/share/doc
 	cd debian/libltdl-dev/usr/share/doc && ln -sf libltdl7 libltdl-dev
-	dh_installchangelogs -plibtool ChangeLog
+	dh_installchangelogs -plibtool-bin
 	dh_installchangelogs -plibltdl7 ChangeLog
 	dh_strip -a
+	dh_lintian -a
 	dh_link -a
 	dh_compress -a
 	dh_fixperms -a
@@ -202,4 +215,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build clean config patch unpatch binary-indep binary-arch binary install
+.PHONY: build build-arch build-indep clean config patch unpatch binary-indep binary-arch binary install

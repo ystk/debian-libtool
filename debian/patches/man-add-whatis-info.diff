@@ -1,0 +1,17 @@
+Index: b/Makefile.am
+===================================================================
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -333,9 +333,10 @@ update_mans = \
+   PATH=".$(PATH_SEPARATOR)$$PATH"; export PATH; \
+   $(HELP2MAN) --output=$@
+ $(srcdir)/doc/libtool.1: $(srcdir)/$(auxdir)/ltmain.sh
+-	$(update_mans) --help-option=--help-all libtool
++	$(update_mans) -n 'Provide generalized library-building support services' \
++	--help-option=--help-all libtool
+ $(srcdir)/doc/libtoolize.1: $(srcdir)/libtoolize.in
+-	$(update_mans) libtoolize
++	$(update_mans) -n 'Prepare a package to use libtool' libtoolize
+ 
+ 
+ ## ------------- ##
