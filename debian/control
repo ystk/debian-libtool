@@ -12,16 +12,16 @@ Build-Conflicts: automake1.9, gcj-jdk
 Section: devel
 Priority: optional
 Maintainer: Kurt Roeckx <kurt@roeckx.be>
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: http://www.gnu.org/software/libtool/
 
 Package: libtool
 Architecture: all
+Multi-Arch: foreign
 Section: devel
 Depends: gcc | c-compiler, cpp, libc6-dev | libc-dev,
   file,
   autotools-dev,
-  libtool-bin (>= ${source:Version}),
   ${misc:Depends}
 Suggests: libtool-doc, autoconf (>> 2.50), automaken, gfortran | fortran95-compiler, gcj-jdk
 Conflicts: autoconf (<= 2.12), automake (<= 1.3), libtool1.4
@@ -39,9 +39,7 @@ Description: Generic library support script
 Package: libtool-bin
 Architecture: any
 Section: devel
-# add this dependency when dropping libtool's dependency on libtool-bin
-#Depends: libtool (>= ${source:Version}), ${misc:Depends}
-Depends: ${misc:Depends}
+Depends: libtool (>= ${source:Version}), ${misc:Depends}
 Replaces: libtool (<< 2.4.2-1.8~)
 Description: Generic library support script (libtool binary)
  This is GNU libtool, a generic library support script.  Libtool hides
